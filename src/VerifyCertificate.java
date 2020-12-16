@@ -1,5 +1,7 @@
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.*;
 
@@ -14,7 +16,7 @@ public class VerifyCertificate {
         -Print "Fail" if any of them fails, followed by an explanatory comment of how the verification failed
      */
 
-    public static X509Certificate verifyCertificate(String clientCertFilename, String caCertFileName) throws IOException {
+    public static X509Certificate verifyCertificateFile(String clientCertFilename, String caCertFileName) throws IOException {
         X509Certificate clientCertificate;
         // step 1
         try {
@@ -23,25 +25,7 @@ public class VerifyCertificate {
             // step 2
             X509Certificate caCertificate = getCertificate(caCertFileName);
 
-            // step 3
-            // verification CA self-signed
-            if (! (verifySignature(caCertificate, clientCertificate.getPublicKey()))){
-                throw new IOException("CA signature is not valid.");
-            }
-            // verification CA date validity
-            if (! (checkDateValidity(caCertificate))){
-                throw new IOException("CA date is not valid.");
-            }
-
-            // step 4
-            // verification client CA-signed
-            if (! (verifySignature(clientCertificate, caCertificate.getPublicKey()))){
-                throw new IOException("Client signature is not valid.");
-            }
-            // verification client date validity
-            if (! (checkDateValidity(clientCertificate))){
-                throw new IOException("Client cert signature is not valid.");
-            }
+            verifyCertificate(clientCertificate, caCertificate);
         } catch (CertificateException e) {
             throw new IOException("Error while loading certificate");
         }
@@ -49,11 +33,40 @@ public class VerifyCertificate {
         return clientCertificate;
     }
 
+    public static void verifyCertificate(X509Certificate clientCertificate,
+                                         X509Certificate caCertificate) throws IOException {
+        // step 3
+        // verification CA self-signed
+        if (! (verifySignature(caCertificate, clientCertificate.getPublicKey()))){
+            throw new IOException("CA signature is not valid.");
+        }
+        // verification CA date validity
+        if (! (checkDateValidity(caCertificate))){
+            throw new IOException("CA date is not valid.");
+        }
+
+        // step 4
+        // verification client CA-signed
+        if (! (verifySignature(clientCertificate, caCertificate.getPublicKey()))){
+            throw new IOException("Client signature is not valid.");
+        }
+        // verification client date validity
+        if (! (checkDateValidity(clientCertificate))){
+            throw new IOException("Client cert signature is not valid.");
+        }
+    }
+
 
     public static X509Certificate getCertificate(String fileName) throws IOException, CertificateException {
         CertificateFactory fact = CertificateFactory.getInstance("X.509");
         FileInputStream is = new FileInputStream (fileName);
         return (X509Certificate) fact.generateCertificate(is);
+    }
+
+    public static String getCertificateToString(String filename) throws IOException {
+        // FileInputStream is = new FileInputStream (fileName);
+        Path fileName = Path.of(filename);
+        return Files.readString(fileName);
     }
 
     public static boolean verifySignature(X509Certificate certificate, PublicKey key) {

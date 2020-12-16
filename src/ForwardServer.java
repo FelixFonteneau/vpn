@@ -1,6 +1,6 @@
 /**
  * Port forwarding server. Forward data
- * between two TCP ports. Based on Nakov TCP Socket Forward Server 
+ * between two TCP ports. Based on Nakov TCP Socket Forward Server
  * and adapted for IK2206.
  *
  * Original copyright notice below.
@@ -12,9 +12,11 @@
  * Version 1.0 - March, 2002
  * (c) 2001 by Svetlin Nakov - http://www.nakov.com
  */
- 
+
 import java.lang.AssertionError;
 import java.lang.Integer;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -25,7 +27,7 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.util.Properties;
 import java.util.StringTokenizer;
- 
+
 public class ForwardServer
 {
     private static final boolean ENABLE_LOGGING = true;
@@ -36,14 +38,28 @@ public class ForwardServer
 
     private ServerHandshake serverHandshake;
     private ServerSocket handshakeListenSocket;
-    
+
     /**
-     * Do handshake negotiation with client to authenticate and learn 
+     * Do handshake negotiation with client to authenticate and learn
      * target host/port, etc.
      */
     private void doHandshake(Socket handshakeSocket) throws UnknownHostException, IOException, Exception {
-
         serverHandshake = new ServerHandshake(handshakeSocket);
+
+        // receive new request
+        X509Certificate clientCertificate = serverHandshake.getClientCertificate();
+        Logger.log("Server receive handshake. Certificate: " + clientCertificate);
+
+        // verify the certificate
+        X509Certificate caCertificate = VerifyCertificate.getCertificate(arguments.get("cacert"));
+        Logger.log("CA cert: " + caCertificate);
+        VerifyCertificate.verifyCertificate(clientCertificate, caCertificate);
+
+        // send server's certificate
+        String serverCertificateString = VerifyCertificate.getCertificateToString(arguments.get("usercert"));
+        serverHandshake.sendServerCertificate(serverCertificateString);
+
+
     }
 
     /**
@@ -53,7 +69,7 @@ public class ForwardServer
     //throws IOException
         throws Exception
     {
- 
+
         // Bind server on given TCP port
         int port = Integer.parseInt(arguments.get("handshakeport"));
         ServerSocket handshakeListenSocket;
@@ -64,7 +80,7 @@ public class ForwardServer
         }
 
         log("Nakov Forward Server started on TCP port " + handshakeListenSocket.getLocalPort());
- 
+
         // Accept client connections and process them until stopped
         while(true) {
 
@@ -77,7 +93,7 @@ public class ForwardServer
             handshakeSocket.close();
 
             /*
-             * Set up port forwarding between an established session socket to target host/port. 
+             * Set up port forwarding between an established session socket to target host/port.
              *
              */
 
@@ -87,7 +103,7 @@ public class ForwardServer
             forwardThread.start();
         }
     }
- 
+
     /**
      * Prints given log message on the standart output if logging is enabled,
      * otherwise ignores it
@@ -97,19 +113,19 @@ public class ForwardServer
         if (ENABLE_LOGGING)
            System.out.println(aMessage);
     }
- 
+
     static void usage() {
         String indent = "";
         System.err.println(indent + "Usage: " + PROGRAMNAME + " options");
         System.err.println(indent + "Where options are:");
         indent += "    ";
         System.err.println(indent + "--handshakehost=<hostname>");
-        System.err.println(indent + "--handshakeport=<portnumber>");        
+        System.err.println(indent + "--handshakeport=<portnumber>");
         System.err.println(indent + "--usercert=<filename>");
         System.err.println(indent + "--cacert=<filename>");
-        System.err.println(indent + "--key=<filename>");                
+        System.err.println(indent + "--key=<filename>");
     }
-    
+
     /**
      * Program entry point. Reads settings, starts check-alive thread and
      * the forward server
@@ -121,9 +137,9 @@ public class ForwardServer
         arguments.setDefault("handshakeport", Integer.toString(DEFAULTHANDSHAKEPORT));
         arguments.setDefault("handshakehost", DEFAULTHANDSHAKEHOST);
         arguments.loadArguments(args);
-        
+
         ForwardServer srv = new ForwardServer();
         srv.startForwardServer();
     }
- 
+
 }

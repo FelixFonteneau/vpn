@@ -47,11 +47,24 @@ public class ForwardClient
      * learn parameters: session port, host, key, and IV
      */
 
-    private static void doHandshake(Socket handshakeSocket) throws IOException {
+    private static void doHandshake(Socket handshakeSocket) throws IOException, CertificateException {
         clientHandshake = new ClientHandshake(handshakeSocket);
-        X509Certificate clientCertificate = VerifyCertificate.verifyCertificate(arguments.get("usercert"), arguments.get("cacert"));
-        clientHandshake.sendCertificate(clientCertificate);
-        X509Certificate certificate = clientHandshake.getServersCertificate();
+
+        // check
+        // X509Certificate clientCertificate = VerifyCertificate.verifyCertificate(arguments.get("usercert"), arguments.get("cacert"));
+
+        // send first message and send certificate
+        String clientCertificateString = VerifyCertificate.getCertificateToString(arguments.get("usercert"));
+        clientHandshake.sendCertificate(clientCertificateString);
+
+        // receive server certificate
+        X509Certificate serversCertificate = clientHandshake.getServersCertificate();
+        Logger.log("Receive server's certificate: " + clientCertificateString);
+
+        // verify the certificate
+        X509Certificate caCertificate = VerifyCertificate.getCertificate(arguments.get("cacert"));
+        VerifyCertificate.verifyCertificate(serversCertificate, caCertificate);
+
     }
 
     /*
@@ -68,7 +81,7 @@ public class ForwardClient
      * Run handshake negotiation, then set up a listening socket
      * and start port forwarder thread.
      */
-    static public void startForwardClient() throws IOException {
+    static public void startForwardClient() throws IOException, CertificateException {
 
         /*
          * First, run the handshake protocol to learn session parameters.
@@ -161,7 +174,7 @@ public class ForwardClient
         }
         try {
             startForwardClient();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             System.out.println(ex);
             System.exit(1);
         }

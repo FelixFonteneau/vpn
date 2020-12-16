@@ -2,7 +2,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -77,22 +76,11 @@ public class HandshakeCrypto {
     }
 
     public static PrivateKey getPrivateKeyFromKeyFile(String keyfile){
-
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            String firstLine = readFirstLineFile(keyfile);
-            byte[] keyBytes;
-            if (firstLine.contains(PKCS1_BEGINING_PATTERN)) {
-                // case PKCS#1
-                keyBytes= readPKCS1KeyMaterial(keyfile);
-                PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
-                return keyFactory.generatePrivate(keySpec);
-            } else {
-                // case PKCS#8/DER
-                keyBytes= fileToByteArray(keyfile);
-                PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
-                return keyFactory.generatePrivate(keySpec);
-            }
+            byte[] keyBytes = fileToByteArray(keyfile);
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+            return keyFactory.generatePrivate(keySpec);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -100,12 +88,6 @@ public class HandshakeCrypto {
             e.printStackTrace();
         }
         return null;
-    }
-
-    private static String readFirstLineFile(String fileName) throws IOException {
-        FileInputStream is = new FileInputStream(fileName);
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        return br.readLine();
     }
 
     private static byte[] fileToByteArray(String fileName) throws IOException {
@@ -120,23 +102,5 @@ public class HandshakeCrypto {
         }
 
         return buffer.toByteArray();
-    }
-
-    private static byte[] readPKCS1KeyMaterial(String fileName) throws IOException {
-        InputStream is = new FileInputStream(fileName);
-        BufferedReader br = new BufferedReader( new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while(( line = br.readLine()) != null ) {
-            if (line.contains(PKCS1_BEGINING_PATTERN)){
-                continue;
-            }
-            if (line.contains(PKCS1_END_PATTERN)) {
-                // System.out.println(sb.toString());
-                return DatatypeConverter.parseBase64Binary(sb.toString());
-            }
-            sb.append( line );
-        }
-        throw new IOException("Not ending pattern");
     }
 }
