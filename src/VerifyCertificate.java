@@ -37,7 +37,7 @@ public class VerifyCertificate {
                                          X509Certificate caCertificate) throws IOException {
         // step 3
         // verification CA self-signed
-        if (! (verifySignature(caCertificate, clientCertificate.getPublicKey()))){
+        if (! (verifySignature(caCertificate, caCertificate.getPublicKey()))){
             throw new IOException("CA signature is not valid.");
         }
         // verification CA date validity
@@ -90,6 +90,14 @@ public class VerifyCertificate {
     }
 
     public static void main(String[] args) {
+
+        try {
+            verifyCertificateFile(args[1], args[0]);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
         X509Certificate caCert, clientCert;
         try{
             // step 1

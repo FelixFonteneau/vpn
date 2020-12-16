@@ -48,17 +48,19 @@ public class ForwardServer
 
         // receive new request
         X509Certificate clientCertificate = serverHandshake.getClientCertificate();
-        Logger.log("Server receive handshake. Certificate: " + clientCertificate);
+        // Logger.log("Server receive handshake. Certificate: " + clientCertificate);
 
         // verify the certificate
         X509Certificate caCertificate = VerifyCertificate.getCertificate(arguments.get("cacert"));
-        Logger.log("CA cert: " + caCertificate);
+        Logger.log("Client's certificate verified.");
         VerifyCertificate.verifyCertificate(clientCertificate, caCertificate);
 
         // send server's certificate
         String serverCertificateString = VerifyCertificate.getCertificateToString(arguments.get("usercert"));
         serverHandshake.sendServerCertificate(serverCertificateString);
 
+        // get client forward request
+        serverHandshake.getClientForwardRequest();
 
     }
 

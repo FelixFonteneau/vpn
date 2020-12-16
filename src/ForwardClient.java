@@ -51,7 +51,7 @@ public class ForwardClient
         clientHandshake = new ClientHandshake(handshakeSocket);
 
         // check
-        // X509Certificate clientCertificate = VerifyCertificate.verifyCertificate(arguments.get("usercert"), arguments.get("cacert"));
+        // X509Certificate clientCertificate = VerifyCertificate.verifyCertificateFile(arguments.get("usercert"), arguments.get("cacert"));
 
         // send first message and send certificate
         String clientCertificateString = VerifyCertificate.getCertificateToString(arguments.get("usercert"));
@@ -64,6 +64,10 @@ public class ForwardClient
         // verify the certificate
         X509Certificate caCertificate = VerifyCertificate.getCertificate(arguments.get("cacert"));
         VerifyCertificate.verifyCertificate(serversCertificate, caCertificate);
+        Logger.log("Server's certificate verified.");
+
+        // Request port forwarding to destination
+        clientHandshake.requestPortForwarding(arguments.get("targethost"), arguments.get("targetport"));
 
     }
 

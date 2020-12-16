@@ -43,10 +43,10 @@ public class ServerHandshake {
         sessionPort = sessionSocket.getLocalPort();
         this.handshakeSocket = handshakeSocket;
         this.handshakeMessage = new HandshakeMessage();
-        this.handshakeMessage.recv(this.handshakeSocket);
     }
 
     public X509Certificate getClientCertificate() throws IOException{
+        this.handshakeMessage.recv(this.handshakeSocket);
         try {
             String messageType = handshakeMessage.getParameter("MessageType");
             if (messageType.equals("ClientHello")){
@@ -67,6 +67,18 @@ public class ServerHandshake {
         handshakeMessage.putParameter("MessageType"	, "ServerHello");
         handshakeMessage.putParameter("Certificate"		, certificate);
         handshakeMessage.send(this.handshakeSocket);
+    }
 
+    public void getClientForwardRequest() throws IOException {
+        this.handshakeMessage.recv(this.handshakeSocket);
+        String messageType = handshakeMessage.getParameter("MessageType");
+        if (messageType.equals("Forward")){
+            String targetHost = handshakeMessage.getParameter("TargetHost");
+            String targetPort = handshakeMessage.getParameter("TargetPort");
+            Logger.log("Forward request : " + targetHost + ", " + targetPort);
+        } else {
+            Logger.log("bad message: " + messageType);
+            throw new IOException("Not good messageType parameter.");
+        }
     }
 }

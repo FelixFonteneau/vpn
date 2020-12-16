@@ -32,7 +32,6 @@ public class ClientHandshake {
     public ClientHandshake(Socket handshakeSocket) throws IOException {
         this.handshakeSocket = handshakeSocket;
         this.clientHandshakeMessage = new HandshakeMessage();
-        this.clientHandshakeMessage.recv(this.handshakeSocket);
     }
 
     public void sendCertificate(String cerficate) throws IOException {
@@ -43,6 +42,7 @@ public class ClientHandshake {
 
     public X509Certificate getServersCertificate() throws IOException {
         try {
+            this.clientHandshakeMessage.recv(this.handshakeSocket);
             String messageType = clientHandshakeMessage.getParameter("MessageType");
             if ("ServerHello".equals(messageType)) {
                 CertificateFactory fact = CertificateFactory.getInstance("X.509");
@@ -56,5 +56,12 @@ public class ClientHandshake {
         } catch (CertificateException e) {
             throw new IOException(e.getMessage());
         }
+    }
+
+    public void requestPortForwarding(String targetHost, String targetPort) throws IOException {
+        clientHandshakeMessage.putParameter("MessageType", "Forward");
+        clientHandshakeMessage.putParameter("TargetHost", targetHost);
+        clientHandshakeMessage.putParameter("TargetPort", targetPort);
+        clientHandshakeMessage.send(this.handshakeSocket);
     }
 }
