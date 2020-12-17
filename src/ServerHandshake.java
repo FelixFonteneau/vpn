@@ -59,7 +59,8 @@ public class ServerHandshake {
                 String certificateString = handshakeMessage.getParameter("Certificate");
                 InputStream is = new ByteArrayInputStream(certificateString.getBytes());
                 // Logger.log(certificateString);
-                return (clientCertificate = (X509Certificate) fact.generateCertificate(is));
+                clientCertificate = (X509Certificate) fact.generateCertificate(is);
+                return clientCertificate;
             } else {
                 throw new IOException("Not good messageType parameter.");
             }
@@ -93,17 +94,15 @@ public class ServerHandshake {
         sessionEncrypter = new SessionEncrypter(SESSION_KEY_LENGTH);
 
         // encode this parameter with client's public key
-        PublicKey clientPublicKey = clientCertificate.getPublicKey();
-        Logger.log("key: " + new String(sessionEncrypter.getKeyBytes()));
-        Logger.log("iv: " + new String(sessionEncrypter.getIVBytes()));
-        byte[] sessionKeyEncrypted = HandshakeCrypto.encrypt(sessionEncrypter.getKeyBytes(), clientPublicKey);
-        byte[] sessionIVEncrypted = HandshakeCrypto.encrypt(sessionEncrypter.getIVBytes(), clientPublicKey);
+        PublicKey clientPublicKey1 = clientCertificate.getPublicKey();
+        PublicKey clientPublicKey2 = HandshakeCrypto.getPublicKeyFromCertFile("client.pem");
+
+
+        byte[] sessionKeyEncrypted = HandshakeCrypto.encrypt(sessionEncrypter.getKeyBytes(), clientPublicKey2);
+        byte[] sessionIVEncrypted = HandshakeCrypto.encrypt(sessionEncrypter.getIVBytes(), clientPublicKey2);
 
         String sessionKeyString = Base64.getEncoder().encodeToString(sessionKeyEncrypted);
         String sessionIVString = Base64.getEncoder().encodeToString(sessionIVEncrypted);
-
-        Logger.log("keyE: " + new String(sessionKeyEncrypted));
-        Logger.log("ivE: " + new String(sessionIVEncrypted));
 
         // send session information
         handshakeMessage.putParameter("MessageType", "Session");

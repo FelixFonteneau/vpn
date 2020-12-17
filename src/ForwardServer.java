@@ -14,12 +14,12 @@
  */
 
 import java.lang.Integer;
+import java.net.InetAddress;
 import java.security.cert.X509Certificate;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.io.IOException;
-import java.util.Base64;
 
 public class ForwardServer
 {
@@ -55,10 +55,13 @@ public class ForwardServer
         // get client forward request
         serverHandshake.getClientForwardRequest();
 
+        // check if the host is joinable
+        if(!InetAddress.getByName(ServerHandshake.targetHost).isReachable(1000)){
+            throw new UnknownHostException("Host " + ServerHandshake.targetHost + " not joinable");
+        }
+
         // generate session parameter and send to the client
         serverHandshake.sendSessionParameter();
-        // log("key: " + Base64.getEncoder().encodeToString(ServerHandshake.sessionEncrypter.getKeyBytes()));
-        // log("iv: " +  Base64.getEncoder().encodeToString(ServerHandshake.sessionEncrypter.getIVBytes()));
     }
 
     /**
@@ -96,9 +99,12 @@ public class ForwardServer
              *
              */
 
-            ForwardServerClientThread forwardThread;
-            forwardThread = new ForwardServerClientThread(serverHandshake.sessionSocket,
-                                                          serverHandshake.targetHost, serverHandshake.targetPort);
+            ForwardServerThread forwardThread;
+            forwardThread = new ForwardServerThread(ServerHandshake.sessionSocket,
+                                                    ServerHandshake.targetHost,
+                                                    ServerHandshake.targetPort,
+                                                    ServerHandshake.sessionEncrypter.getKeyBytes(),
+                                                    ServerHandshake.sessionEncrypter.getIVBytes());
             forwardThread.start();
         }
     }
@@ -136,6 +142,13 @@ public class ForwardServer
         arguments.setDefault("handshakeport", Integer.toString(DEFAULTHANDSHAKEPORT));
         arguments.setDefault("handshakehost", DEFAULTHANDSHAKEHOST);
         arguments.loadArguments(args);
+
+        if (arguments.get("usercert") == null || arguments.get("cacert") == null) {
+            throw new IllegalArgumentException("Certificates not specified");
+        }
+        if (arguments.get("key") == null) {
+            throw new IllegalArgumentException("Private key not specified");
+        }
 
         ForwardServer srv = new ForwardServer();
         srv.startForwardServer();

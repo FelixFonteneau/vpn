@@ -4,20 +4,20 @@
  * everything to the output stream. If some of the streams fails, the forwarding
  * is stopped and the parent thread is notified to close all its connections.
  */
- 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
- 
+
 public class ForwardThread extends Thread
 {
 private static final int READ_BUFFER_SIZE = 8192;
- 
+
     InputStream mInputStream = null;
     OutputStream mOutputStream = null;
- 
+
     ForwardServerClientThread mParent = null;
- 
+
     /**
      * Creates a new traffic forward thread specifying its input stream,
      * output stream and parent thread
@@ -28,7 +28,7 @@ private static final int READ_BUFFER_SIZE = 8192;
         mOutputStream = aOutputStream;
         mParent = aParent;
     }
- 
+
     /**
      * Runs the thread. Until it is possible, reads the input stream and puts read
      * data in the output stream. If reading can not be done (due to exception or
@@ -47,8 +47,8 @@ private static final int READ_BUFFER_SIZE = 8192;
         } catch (IOException e) {
             // Read/write failed --> connection is broken --> exit the thread
         }
- 
+
         // Notify parent thread that the connection is broken and forwarding should stop
         mParent.connectionBroken();
-    } 
+    }
 }

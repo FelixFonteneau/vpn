@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.io.IOException;
 import java.security.Key;
+import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -35,9 +36,9 @@ public class ClientHandshake {
         this.clientHandshakeMessage = new HandshakeMessage();
     }
 
-    public void sendCertificate(String cerficate) throws IOException {
+    public void sendCertificate(String certificate) throws IOException {
         clientHandshakeMessage.putParameter("MessageType"	, "ClientHello");
-        clientHandshakeMessage.putParameter("Certificate"		, cerficate);
+        clientHandshakeMessage.putParameter("Certificate"		, certificate);
         clientHandshakeMessage.send(this.handshakeSocket);
     }
 
@@ -76,11 +77,8 @@ public class ClientHandshake {
             byte[] sessionKeyEncoded = Base64.getDecoder().decode(sessionKeyEncodedString.getBytes());
             byte[] sessionIVEncoded = Base64.getDecoder().decode(sessionIVEncodedString.getBytes());
 
-            Logger.log("keyE: " + new String(sessionKeyEncoded));
-            Logger.log("ivE: " + new String(sessionIVEncoded));
-
             // get the private Key
-            Key privateKey = HandshakeCrypto.getPrivateKeyFromKeyFile(privateKeyClientFilename);
+            PrivateKey privateKey = HandshakeCrypto.getPrivateKeyFromKeyFile(privateKeyClientFilename);
 
             sessionKey = HandshakeCrypto.decrypt(sessionKeyEncoded, privateKey);
             sessionIV = HandshakeCrypto.decrypt(sessionIVEncoded, privateKey);

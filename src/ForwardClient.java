@@ -14,20 +14,15 @@
  */
 
 
-import java.lang.AssertionError;
 import java.lang.IllegalArgumentException;
 import java.lang.Integer;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.io.IOException;
-import java.io.FileInputStream;
-import java.util.Base64;
 
 public class ForwardClient
 {
@@ -113,9 +108,12 @@ public class ForwardClient
          * Set up port forwarding between proxy port and session host/port
          * that was learned from the handshake.
          */
-        ForwardServerClientThread forwardThread =
-            new ForwardServerClientThread(proxySocket,
-                                          clientHandshake.sessionHost, clientHandshake.sessionPort);
+        ForwardClientThread forwardThread =
+            new ForwardClientThread(proxySocket,
+                                    ClientHandshake.sessionHost,
+                                    ClientHandshake.sessionPort,
+                                    ClientHandshake.sessionKey,
+                                    ClientHandshake.sessionIV);
         /*
          * Launch the fowarder
          */

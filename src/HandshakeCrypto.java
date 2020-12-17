@@ -3,6 +3,8 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -75,21 +77,32 @@ public class HandshakeCrypto {
         return publicKey;
     }
 
-    public static PrivateKey getPrivateKeyFromKeyFile(String keyfile){
+    public static PrivateKey getPrivateKeyFromKeyFile(String keyfile) throws IOException{
+        byte[] keyBytes = Files.readAllBytes(Paths.get(keyfile));
 
-        try {
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            byte[] keyBytes = fileToByteArray(keyfile);
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
-            return keyFactory.generatePrivate(keySpec);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            System.err.println("File: " + keyfile + " not found.");
-            e.printStackTrace();
+        try{
+            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            return kf.generatePrivate(spec);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e){
+            throw new IOException(e);
         }
-        return null;
+
+     //   try {
+     //       KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+     //       byte[] keyBytes = fileToByteArray(keyfile);
+     //       PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+     //       return keyFactory.generatePrivate(keySpec);
+     //   } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+     //       e.printStackTrace();
+     //   } catch (IOException e) {
+     //       System.err.println("File: " + keyfile + " not found.");
+     //       e.printStackTrace();
+     //   }
+     //   return null;
     }
+
+
 
     private static byte[] fileToByteArray(String fileName) throws IOException {
         InputStream is = new FileInputStream(fileName);
