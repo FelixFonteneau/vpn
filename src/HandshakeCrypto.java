@@ -76,6 +76,7 @@ public class HandshakeCrypto {
     }
 
     public static PrivateKey getPrivateKeyFromKeyFile(String keyfile){
+
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             byte[] keyBytes = fileToByteArray(keyfile);

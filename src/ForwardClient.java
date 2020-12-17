@@ -27,6 +27,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.io.IOException;
 import java.io.FileInputStream;
+import java.util.Base64;
 
 public class ForwardClient
 {
@@ -59,7 +60,7 @@ public class ForwardClient
 
         // receive server certificate
         X509Certificate serversCertificate = clientHandshake.getServersCertificate();
-        Logger.log("Receive server's certificate: " + clientCertificateString);
+        // Logger.log("Receive server's certificate: " + clientCertificateString);
 
         // verify the certificate
         X509Certificate caCertificate = VerifyCertificate.getCertificate(arguments.get("cacert"));
@@ -69,6 +70,8 @@ public class ForwardClient
         // Request port forwarding to destination
         clientHandshake.requestPortForwarding(arguments.get("targethost"), arguments.get("targetport"));
 
+        // Get session parameter
+        clientHandshake.getSessionParameter(arguments.get("key"));
     }
 
     /*

@@ -13,20 +13,13 @@
  * (c) 2001 by Svetlin Nakov - http://www.nakov.com
  */
 
-import java.lang.AssertionError;
 import java.lang.Integer;
-import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.io.IOException;
-import java.io.FileInputStream;
-import java.util.Properties;
-import java.util.StringTokenizer;
+import java.util.Base64;
 
 public class ForwardServer
 {
@@ -62,6 +55,10 @@ public class ForwardServer
         // get client forward request
         serverHandshake.getClientForwardRequest();
 
+        // generate session parameter and send to the client
+        serverHandshake.sendSessionParameter();
+        // log("key: " + Base64.getEncoder().encodeToString(ServerHandshake.sessionEncrypter.getKeyBytes()));
+        // log("iv: " +  Base64.getEncoder().encodeToString(ServerHandshake.sessionEncrypter.getIVBytes()));
     }
 
     /**
