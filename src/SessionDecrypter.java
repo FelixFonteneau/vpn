@@ -1,6 +1,7 @@
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import java.io.InputStream;
 
 
@@ -17,9 +18,9 @@ public class SessionDecrypter {
         // create the cypher
         Cipher cipher;
         try{
-            cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(128, ivBytes);
-            cipher.init(Cipher.DECRYPT_MODE, this.sessionKey.getSecretKey(), gcmParameterSpec);
+            cipher = Cipher.getInstance("AES/CTR/NoPadding");
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
+            cipher.init(Cipher.DECRYPT_MODE, this.sessionKey.getSecretKey(), ivParameterSpec);
         } catch (Exception e){
             e.printStackTrace();
             cipher = null;

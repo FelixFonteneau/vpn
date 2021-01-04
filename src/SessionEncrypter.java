@@ -1,13 +1,14 @@
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import java.io.OutputStream;
 import java.security.SecureRandom;
 
 import static javax.crypto.Cipher.ENCRYPT_MODE;
 
 public class SessionEncrypter {
-    private static final int IV_LENGTH = 12;
+    private static final int IV_LENGTH = 16;
     private SessionKey sessionKey;
     private byte[] ivBytes;
 
@@ -34,9 +35,9 @@ public class SessionEncrypter {
         // create the cypher
         Cipher cipher;
         try{
-            cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(128, ivBytes);
-            cipher.init(ENCRYPT_MODE, this.sessionKey.getSecretKey(), gcmParameterSpec);
+            cipher = Cipher.getInstance("AES/CTR/NoPadding");
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
+            cipher.init(ENCRYPT_MODE, this.sessionKey.getSecretKey(), ivParameterSpec);
         } catch (Exception e){
             e.printStackTrace();
             cipher = null;

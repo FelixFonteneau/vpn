@@ -11,7 +11,7 @@ import java.io.OutputStream;
 
 public class ForwardThread extends Thread
 {
-private static final int READ_BUFFER_SIZE = 8192;
+private static final int READ_BUFFER_SIZE = 126;
 
     InputStream mInputStream = null;
     OutputStream mOutputStream = null;
@@ -40,6 +40,7 @@ private static final int READ_BUFFER_SIZE = 8192;
         try {
             while (true) {
                 int bytesRead = mInputStream.read(buffer);
+                // Logger.log(new String(buffer));
                 if (bytesRead == -1)
                     break; // End of stream is reached --> exit the thread
                 mOutputStream.write(buffer, 0, bytesRead);

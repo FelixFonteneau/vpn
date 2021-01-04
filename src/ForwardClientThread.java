@@ -86,10 +86,9 @@ public class ForwardClientThread extends Thread implements ForwardServerClientTh
             // Obtain input and output streams of server and client
             InputStream clientIn = mClientSocket.getInputStream();
             OutputStream clientOut = mClientSocket.getOutputStream();
+
             InputStream serverIn = sessionDecrypter.openCipherInputStream(mServerSocket.getInputStream());
             OutputStream serverOut = sessionEncrypter.openCipherOutputStream(mServerSocket.getOutputStream());
-            // InputStream serverIn = mServerSocket.getInputStream();
-            // OutputStream serverOut = mServerSocket.getOutputStream();
 
             mServerHostPort = mServerHost + ":" + mServerPort;
             Logger.log("TCP Forwarding  " + mClientHostPort + " <--> " + mServerHostPort + "  started.");

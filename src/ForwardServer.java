@@ -85,27 +85,31 @@ public class ForwardServer
 
         // Accept client connections and process them until stopped
         while(true) {
+            try{
+                Socket handshakeSocket = handshakeListenSocket.accept();
+                String clientHostPort = handshakeSocket.getInetAddress().getHostName() + ":" +
+                        handshakeSocket.getPort();
+                Logger.log("Incoming handshake connection from " + clientHostPort);
 
-            Socket handshakeSocket = handshakeListenSocket.accept();
-            String clientHostPort = handshakeSocket.getInetAddress().getHostName() + ":" +
-                handshakeSocket.getPort();
-            Logger.log("Incoming handshake connection from " + clientHostPort);
+                doHandshake(handshakeSocket);
+                handshakeSocket.close();
 
-            doHandshake(handshakeSocket);
-            handshakeSocket.close();
+                /*
+                 * Set up port forwarding between an established session socket to target host/port.
+                 *
+                 */
 
-            /*
-             * Set up port forwarding between an established session socket to target host/port.
-             *
-             */
+                ForwardServerThread forwardThread;
+                forwardThread = new ForwardServerThread(ServerHandshake.sessionSocket,
+                        ServerHandshake.targetHost,
+                        ServerHandshake.targetPort,
+                        ServerHandshake.sessionEncrypter.getKeyBytes(),
+                        ServerHandshake.sessionEncrypter.getIVBytes());
 
-            ForwardServerThread forwardThread;
-            forwardThread = new ForwardServerThread(ServerHandshake.sessionSocket,
-                                                    ServerHandshake.targetHost,
-                                                    ServerHandshake.targetPort,
-                                                    ServerHandshake.sessionEncrypter.getKeyBytes(),
-                                                    ServerHandshake.sessionEncrypter.getIVBytes());
-            forwardThread.start();
+                forwardThread.start();
+            } catch (IOException e){
+                e.printStackTrace();
+            }
         }
     }
 

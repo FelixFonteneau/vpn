@@ -87,8 +87,6 @@ public class ForwardServerThread extends Thread implements ForwardServerClientTh
             // Obtain input and output streams of server and client
             InputStream clientIn = this.sessionDecrypter.openCipherInputStream(mClientSocket.getInputStream());
             OutputStream clientOut = this.sessionEncrypter.openCipherOutputStream(mClientSocket.getOutputStream());
-            // InputStream clientIn = mClientSocket.getInputStream();
-            // OutputStream clientOut = mClientSocket.getOutputStream();
 
             InputStream serverIn = mServerSocket.getInputStream();
             OutputStream serverOut = mServerSocket.getOutputStream();
