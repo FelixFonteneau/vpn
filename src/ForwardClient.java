@@ -23,6 +23,7 @@ import java.net.Socket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.io.IOException;
+import java.util.Base64;
 
 public class ForwardClient
 {
@@ -50,8 +51,8 @@ public class ForwardClient
         // X509Certificate clientCertificate = VerifyCertificate.verifyCertificateFile(arguments.get("usercert"), arguments.get("cacert"));
 
         // send first message and send certificate
-        String clientCertificateString = VerifyCertificate.getCertificateToString(arguments.get("usercert"));
-        clientHandshake.sendCertificate(clientCertificateString);
+        String clientCertificateEncodedString = Base64.getEncoder().encodeToString(VerifyCertificate.getCertificate(arguments.get("usercert")).getEncoded());
+        clientHandshake.sendCertificate(clientCertificateEncodedString);
 
         // receive server certificate
         X509Certificate serversCertificate = clientHandshake.getServersCertificate();

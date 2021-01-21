@@ -1,13 +1,12 @@
 /**
  * Client side of the handshake.
  */
+
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import java.io.IOException;
-import java.security.Key;
 import java.security.PrivateKey;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -19,7 +18,6 @@ public class ClientHandshake {
      * The parameters below should be learned by the client
      * through the handshake protocol.
      */
-    private HandshakeMessage clientHandshakeMessage;
 
     /* Session host/port  */
     public static String sessionHost = "localhost";
@@ -31,25 +29,46 @@ public class ClientHandshake {
      * Run client handshake protocol on a handshake socket.
      * Here, we do nothing, for now.
      */
-    public ClientHandshake(Socket handshakeSocket) throws IOException {
+    public ClientHandshake(Socket handshakeSocket) {
         this.handshakeSocket = handshakeSocket;
-        this.clientHandshakeMessage = new HandshakeMessage();
     }
 
-    public void sendCertificate(String certificate) throws IOException {
-        clientHandshakeMessage.putParameter("MessageType"	, "ClientHello");
-        clientHandshakeMessage.putParameter("Certificate"		, certificate);
+    /**
+     * Send the first message with the certificate
+     * @param certificate64Encoded Certificate
+     * @throws IOException exception
+     */
+    public void sendCertificate(String certificate64Encoded) throws IOException {
+        HandshakeMessage clientHandshakeMessage = new HandshakeMessage();
+        clientHandshakeMessage.putParameter("MessageType", "ClientHello");
+        clientHandshakeMessage.putParameter("Certificate", certificate64Encoded);
         clientHandshakeMessage.send(this.handshakeSocket);
+
+        Logger.log("ClientHello message:");
+        clientHandshakeMessage.list(System.out);
+        Logger.log("\n");
     }
 
+    /**
+     * Get the server's reply with its certificate
+     * @return certificate
+     * @throws IOException exception
+     */
     public X509Certificate getServersCertificate() throws IOException {
+        HandshakeMessage clientHandshakeMessage = new HandshakeMessage();
+
         try {
-            this.clientHandshakeMessage.recv(this.handshakeSocket);
+            clientHandshakeMessage.recv(this.handshakeSocket);
+
+            Logger.log("ServerHello message:");
+            clientHandshakeMessage.list(System.out);
+            Logger.log("\n");
+
             String messageType = clientHandshakeMessage.getParameter("MessageType");
             if ("ServerHello".equals(messageType)) {
                 CertificateFactory fact = CertificateFactory.getInstance("X.509");
-                String certificateString = clientHandshakeMessage.getParameter("Certificate");
-                InputStream is = new ByteArrayInputStream(certificateString.getBytes());
+                String certificateEncoded64String = clientHandshakeMessage.getParameter("Certificate");
+                InputStream is = new ByteArrayInputStream(Base64.getDecoder().decode(certificateEncoded64String));
                 // Logger.log(certificateString);
                 return (X509Certificate) fact.generateCertificate(is);
             } else {
@@ -60,15 +79,39 @@ public class ClientHandshake {
         }
     }
 
+    /**
+     * Send the second message to request port forwarding
+     * @param targetHost the target host address
+     * @param targetPort the target host port
+     * @throws IOException exception
+     */
     public void requestPortForwarding(String targetHost, String targetPort) throws IOException {
+        HandshakeMessage clientHandshakeMessage = new HandshakeMessage();
+
         clientHandshakeMessage.putParameter("MessageType", "Forward");
         clientHandshakeMessage.putParameter("TargetHost", targetHost);
         clientHandshakeMessage.putParameter("TargetPort", targetPort);
         clientHandshakeMessage.send(this.handshakeSocket);
+
+        Logger.log("Forward message:");
+        clientHandshakeMessage.list(System.out);
+        Logger.log("\n");
     }
 
+    /**
+     * Get the server's reply about the forwarding, retrieve the session parameters.
+     * @param privateKeyClientFilename the private key
+     * @throws IOException exception
+     */
     public void getSessionParameter(String privateKeyClientFilename) throws IOException {
-        this.clientHandshakeMessage.recv(this.handshakeSocket);
+        HandshakeMessage clientHandshakeMessage = new HandshakeMessage();
+
+        clientHandshakeMessage.recv(this.handshakeSocket);
+
+        Logger.log("Session message:");
+        clientHandshakeMessage.list(System.out);
+        Logger.log("\n");
+
         String messageType = clientHandshakeMessage.getParameter("MessageType");
         if ("Session".equals(messageType)) {
             String sessionKeyEncodedString = clientHandshakeMessage.getParameter("SessionKey");

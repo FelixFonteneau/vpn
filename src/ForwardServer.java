@@ -20,6 +20,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.io.IOException;
+import java.util.Base64;
 
 public class ForwardServer
 {
@@ -49,8 +50,8 @@ public class ForwardServer
         VerifyCertificate.verifyCertificate(clientCertificate, caCertificate);
 
         // send server's certificate
-        String serverCertificateString = VerifyCertificate.getCertificateToString(arguments.get("usercert"));
-        serverHandshake.sendServerCertificate(serverCertificateString);
+        String serverCertificateEncodedString = Base64.getEncoder().encodeToString(VerifyCertificate.getCertificate(arguments.get("usercert")).getEncoded());
+        serverHandshake.sendServerCertificate(serverCertificateEncodedString);
 
         // get client forward request
         serverHandshake.getClientForwardRequest();
