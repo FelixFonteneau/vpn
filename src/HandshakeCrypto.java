@@ -23,7 +23,7 @@ public class HandshakeCrypto {
         byte[] cipherByte = null;
 
         try {
-            cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA1AndMGF1Padding");
+            cipher = Cipher.getInstance("RSA");
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             e.printStackTrace();
         }
@@ -45,7 +45,7 @@ public class HandshakeCrypto {
         byte[] result = null;
         Cipher cipher = null;
         try {
-            cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA1AndMGF1Padding");
+            cipher = Cipher.getInstance("RSA");
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             e.printStackTrace();
         }
