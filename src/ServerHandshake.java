@@ -132,11 +132,9 @@ public class ServerHandshake {
 
         // encode this parameter with client's public key
         PublicKey clientPublicKey1 = clientCertificate.getPublicKey();
-        PublicKey clientPublicKey2 = HandshakeCrypto.getPublicKeyFromCertFile("client.pem");
 
-
-        byte[] sessionKeyEncrypted = HandshakeCrypto.encrypt(sessionEncrypter.getKeyBytes(), clientPublicKey2);
-        byte[] sessionIVEncrypted = HandshakeCrypto.encrypt(sessionEncrypter.getIVBytes(), clientPublicKey2);
+        byte[] sessionKeyEncrypted = HandshakeCrypto.encrypt(sessionEncrypter.getKeyBytes(), clientPublicKey1);
+        byte[] sessionIVEncrypted = HandshakeCrypto.encrypt(sessionEncrypter.getIVBytes(), clientPublicKey1);
 
         String sessionKeyString = Base64.getEncoder().encodeToString(sessionKeyEncrypted);
         String sessionIVString = Base64.getEncoder().encodeToString(sessionIVEncrypted);
