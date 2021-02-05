@@ -20,19 +20,20 @@ public class ServerHandshake {
      */
 
     /* Session host/port, and the corresponding ServerSocket  */
-    public static ServerSocket sessionSocket;
-    public static String sessionHost;
-    public static int sessionPort;
+    private ServerSocket sessionSocket;
+    private String sessionHost;
+    private int sessionPort;
     private Socket handshakeSocket;
 
     /* The final destination -- simulate handshake with constants */
-    public static String targetHost = "localhost";
-    public static int targetPort = 6789;
+    private String targetHost = "localhost";
+    private int targetPort = 6789;
 
     /* Security parameters key/iv should also go here. Fill in! */
-    public static int SESSION_KEY_LENGTH = 128;
-    public static SessionEncrypter sessionEncrypter;
-    public static X509Certificate clientCertificate;
+    private static int SESSION_KEY_LENGTH = 128;
+    private SessionEncrypter sessionEncrypter;
+    private X509Certificate clientCertificate;
+
     /**
      * Run server handshake protocol on a handshake socket.
      * Here, we simulate the handshake by just creating a new socket
@@ -151,6 +152,37 @@ public class ServerHandshake {
         Logger.log("Session message:");
         handshakeMessage.list(System.out);
         Logger.log("\n");
+    }
 
+    public void closeConnection(){
+        try { sessionSocket.close(); } catch (IOException e){}
+    }
+
+    public ServerSocket getSessionSocket() {
+        return sessionSocket;
+    }
+
+    public String getSessionHost() {
+        return sessionHost;
+    }
+
+    public int getSessionPort() {
+        return sessionPort;
+    }
+
+    public Socket getHandshakeSocket() {
+        return handshakeSocket;
+    }
+
+    public String getTargetHost() {
+        return targetHost;
+    }
+
+    public int getTargetPort() {
+        return targetPort;
+    }
+
+    public SessionEncrypter getSessionEncrypter() {
+        return sessionEncrypter;
     }
 }

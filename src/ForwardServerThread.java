@@ -79,6 +79,7 @@ public class ForwardServerThread extends Thread implements ForwardServerClientTh
                 mServerSocket = new Socket(mServerHost, mServerPort);
             } catch (Exception e) {
                 System.out.println("Connection failed to " + mServerHost + ":" + mServerPort);
+                try {mClientSocket.close();} catch(IOException ex) {}
                 e.printStackTrace();
                 // Prints what exception has been thrown
                 System.out.println(e);
@@ -103,6 +104,7 @@ public class ForwardServerThread extends Thread implements ForwardServerClientTh
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
+            try { mListenSocket.close(); } catch (IOException e){}
         }
     }
 
@@ -114,6 +116,7 @@ public class ForwardServerThread extends Thread implements ForwardServerClientTh
      */
     public synchronized void connectionBroken()
     {
+        try { mListenSocket.close(); } catch (IOException e){}
         if (mBothConnectionsAreAlive) {
             // One of the connections is broken. Close the other connection and stop forwarding
             // Closing these socket connections will close their input/output streams
@@ -126,5 +129,4 @@ public class ForwardServerThread extends Thread implements ForwardServerClientTh
             Logger.log("TCP Forwarding  " + mClientHostPort + " <--> " + mServerHostPort + "  stopped.");
         }
     }
-
 }

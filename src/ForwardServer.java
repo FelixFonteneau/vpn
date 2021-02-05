@@ -30,15 +30,14 @@ public class ForwardServer
     public static final String PROGRAMNAME = "ForwardServer";
     private static Arguments arguments;
 
-    private ServerHandshake serverHandshake;
     private ServerSocket handshakeListenSocket;
 
     /**
      * Do handshake negotiation with client to authenticate and learn
      * target host/port, etc.
      */
-    private void doHandshake(Socket handshakeSocket) throws UnknownHostException, IOException, Exception {
-        serverHandshake = new ServerHandshake(handshakeSocket);
+    private ServerHandshake doHandshake(Socket handshakeSocket) throws UnknownHostException, IOException, Exception {
+        ServerHandshake serverHandshake = new ServerHandshake(handshakeSocket);
 
         // receive new request
         X509Certificate clientCertificate = serverHandshake.getClientCertificate();
@@ -57,12 +56,14 @@ public class ForwardServer
         serverHandshake.getClientForwardRequest();
 
         // check if the host is joinable
-        if(!InetAddress.getByName(ServerHandshake.targetHost).isReachable(1000)){
-            throw new UnknownHostException("Host " + ServerHandshake.targetHost + " not joinable");
+        if(!InetAddress.getByName(serverHandshake.getTargetHost()).isReachable(1000)){
+            throw new UnknownHostException("Host " + serverHandshake.getTargetHost() + " not joinable");
         }
 
         // generate session parameter and send to the client
         serverHandshake.sendSessionParameter();
+
+        return serverHandshake;
     }
 
     /**
@@ -86,13 +87,15 @@ public class ForwardServer
 
         // Accept client connections and process them until stopped
         while(true) {
+            ServerHandshake handshake = null;
+            ForwardServerThread forwardThread = null;
             try{
                 Socket handshakeSocket = handshakeListenSocket.accept();
                 String clientHostPort = handshakeSocket.getInetAddress().getHostName() + ":" +
                         handshakeSocket.getPort();
                 Logger.log("Incoming handshake connection from " + clientHostPort);
 
-                doHandshake(handshakeSocket);
+                handshake = doHandshake(handshakeSocket);
                 handshakeSocket.close();
 
                 /*
@@ -100,16 +103,23 @@ public class ForwardServer
                  *
                  */
 
-                ForwardServerThread forwardThread;
-                forwardThread = new ForwardServerThread(ServerHandshake.sessionSocket,
-                        ServerHandshake.targetHost,
-                        ServerHandshake.targetPort,
-                        ServerHandshake.sessionEncrypter.getKeyBytes(),
-                        ServerHandshake.sessionEncrypter.getIVBytes());
+                forwardThread = new ForwardServerThread(handshake.getSessionSocket(),
+                        handshake.getTargetHost(),
+                        handshake.getTargetPort(),
+                        handshake.getSessionEncrypter().getKeyBytes(),
+                        handshake.getSessionEncrypter().getIVBytes());
 
                 forwardThread.start();
             } catch (IOException e){
                 e.printStackTrace();
+
+                // stop the different sockets
+                if(handshake != null) {
+                    handshake.closeConnection();
+                }
+                if (forwardThread != null){
+                    forwardThread.connectionBroken();
+                }
             }
         }
     }
