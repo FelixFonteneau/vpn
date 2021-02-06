@@ -8,4 +8,5 @@ Project of the course IK...
 ### Usage 
 
 
-### 
+### Note
+The certificates and key files are not used in anyway in real and you should not use them as well.
